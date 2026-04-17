@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet --version 2>/dev/null && dotnet sdk check 2>/dev/null | head -10)",
+      "Bash(flutter --version 2>/dev/null | head -5)",
+      "Bash(psql --version 2>/dev/null; pg_isready 2>/dev/null)",
+      "Bash(dotnet new:*)",
+      "Bash(cd /c/Users/t_dog/desktop/development/ArsenalApi && dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL --version 8.0.4 && dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0.4 && dotnet add package Swashbuckle.AspNetCore --version 6.6.2)",
+      "Bash(cd /c/Users/t_dog/desktop/development/ArsenalApi && dotnet ef migrations add InitialCreate)",
+      "Bash(cd \"C:/Users/t_dog/desktop/development/arsenal_manager\" && flutter pub get 2>&1)",
+      "Bash(cd \"C:/Users/t_dog/desktop/development/arsenal_manager\" && flutter analyze 2>&1)"
+    ]
+  }
+}
