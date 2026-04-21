@@ -1,83 +1,127 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/gear_item.dart';
 import '../models/division.dart';
 import '../models/dashboard_stats.dart';
 import '../services/api_service.dart';
 
-class ArsenalProvider extends ChangeNotifier {
-  final ApiService _api = ApiService();
+// ─── Sentinel for nullable copyWith fields ────────────────────────────────────
+const Object _keep = Object();
 
-  List<GearItem> _gear = [];
-  List<Division> _divisions = [];
-  DashboardStats _stats = DashboardStats.empty();
-  bool _loading = false;
-  String? _error;
-  String _searchQuery = '';
-  int? _selectedDivisionId;
+// ─── State ────────────────────────────────────────────────────────────────────
 
-  List<GearItem> get gear => _gear;
-  List<Division> get divisions => _divisions;
-  DashboardStats get stats => _stats;
-  bool get loading => _loading;
-  String? get error => _error;
-  String get searchQuery => _searchQuery;
-  int? get selectedDivisionId => _selectedDivisionId;
+class ArsenalState {
+  final List<GearItem> gear;
+  final List<Division> divisions;
+  final DashboardStats stats;
+  final bool loading;
+  final String? error;
+  final String searchQuery;
+  final int? selectedDivisionId;
 
-  List<GearItem> get filteredGear {
-    var result = _gear;
-    if (_selectedDivisionId != null) {
-      result = result.where((g) => g.divisionId == _selectedDivisionId).toList();
-    }
-    if (_searchQuery.isNotEmpty) {
-      result = result
-          .where((g) => g.name.toLowerCase().contains(_searchQuery.toLowerCase()))
-          .toList();
-    }
-    final sorted = List<GearItem>.from(result)
-      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-    return sorted;
+  const ArsenalState({
+    required this.gear,
+    required this.divisions,
+    required this.stats,
+    required this.loading,
+    this.error,
+    this.searchQuery = '',
+    this.selectedDivisionId,
+  });
+
+  factory ArsenalState.initial() => ArsenalState(
+        gear: const [],
+        divisions: const [],
+        stats: DashboardStats.empty(),
+        loading: false,
+      );
+
+  ArsenalState copyWith({
+    List<GearItem>? gear,
+    List<Division>? divisions,
+    DashboardStats? stats,
+    bool? loading,
+    Object? error = _keep,
+    String? searchQuery,
+    Object? selectedDivisionId = _keep,
+  }) {
+    return ArsenalState(
+      gear: gear ?? this.gear,
+      divisions: divisions ?? this.divisions,
+      stats: stats ?? this.stats,
+      loading: loading ?? this.loading,
+      error: identical(error, _keep) ? this.error : error as String?,
+      searchQuery: searchQuery ?? this.searchQuery,
+      selectedDivisionId: identical(selectedDivisionId, _keep)
+          ? this.selectedDivisionId
+          : selectedDivisionId as int?,
+    );
   }
 
+  List<GearItem> get filteredGear {
+    var result = gear;
+    if (selectedDivisionId != null) {
+      result = result.where((g) => g.divisionId == selectedDivisionId).toList();
+    }
+    if (searchQuery.isNotEmpty) {
+      result = result
+          .where(
+              (g) => g.name.toLowerCase().contains(searchQuery.toLowerCase()))
+          .toList();
+    }
+    return List<GearItem>.from(result)
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  }
+}
+
+// ─── Providers ────────────────────────────────────────────────────────────────
+
+final apiServiceProvider = Provider<ApiServiceBase>((ref) => ApiService());
+
+final arsenalProvider =
+    NotifierProvider<ArsenalNotifier, ArsenalState>(ArsenalNotifier.new);
+
+// ─── Notifier ─────────────────────────────────────────────────────────────────
+
+class ArsenalNotifier extends Notifier<ArsenalState> {
+  @override
+  ArsenalState build() {
+    Future.microtask(loadAll);
+    return ArsenalState.initial();
+  }
+
+  ApiServiceBase get _api => ref.read(apiServiceProvider);
+
   void setSearch(String query) {
-    _searchQuery = query;
-    notifyListeners();
+    state = state.copyWith(searchQuery: query);
   }
 
   void setDivisionFilter(int? divisionId) {
-    _selectedDivisionId = divisionId;
-    notifyListeners();
+    state = state.copyWith(selectedDivisionId: divisionId);
   }
 
   Future<void> loadAll() async {
-    _loading = true;
-    _error = null;
-    notifyListeners();
+    state = state.copyWith(loading: true, error: null);
     try {
       final results = await Future.wait([
         _api.fetchGear(),
         _api.fetchDivisions(),
         _api.fetchStats(),
       ]);
-      _gear = results[0] as List<GearItem>;
-      _divisions = results[1] as List<Division>;
-      _stats = results[2] as DashboardStats;
+      state = state.copyWith(
+        gear: results[0] as List<GearItem>,
+        divisions: results[1] as List<Division>,
+        stats: results[2] as DashboardStats,
+        loading: false,
+      );
     } catch (e) {
-      _error = e.toString();
-    } finally {
-      _loading = false;
-      notifyListeners();
+      state = state.copyWith(loading: false, error: e.toString());
     }
   }
 
-  Future<void> loadGear() async {
-    try {
-      _gear = await _api.fetchGear();
-      _stats = await _api.fetchStats();
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString();
-      notifyListeners();
-    }
+  Future<void> _refreshGear() async {
+    final gear = await _api.fetchGear();
+    final stats = await _api.fetchStats();
+    state = state.copyWith(gear: gear, stats: stats);
   }
 
   Future<bool> addGear({
@@ -93,13 +137,12 @@ class ArsenalProvider extends ChangeNotifier {
         quantity: quantity,
         notes: notes,
       );
-      _gear.add(newItem);
-      _stats = await _api.fetchStats();
-      notifyListeners();
+      final updatedGear = [...state.gear, newItem];
+      final stats = await _api.fetchStats();
+      state = state.copyWith(gear: updatedGear, stats: stats);
       return true;
     } catch (e) {
-      _error = e.toString();
-      notifyListeners();
+      state = state.copyWith(error: e.toString());
       return false;
     }
   }
@@ -119,11 +162,10 @@ class ArsenalProvider extends ChangeNotifier {
         quantity: quantity,
         notes: notes,
       );
-      await loadGear();
+      await _refreshGear();
       return true;
     } catch (e) {
-      _error = e.toString();
-      notifyListeners();
+      state = state.copyWith(error: e.toString());
       return false;
     }
   }
@@ -131,13 +173,12 @@ class ArsenalProvider extends ChangeNotifier {
   Future<bool> deleteGear(int id) async {
     try {
       await _api.deleteGear(id);
-      _gear.removeWhere((g) => g.id == id);
-      _stats = await _api.fetchStats();
-      notifyListeners();
+      final updatedGear = state.gear.where((g) => g.id != id).toList();
+      final stats = await _api.fetchStats();
+      state = state.copyWith(gear: updatedGear, stats: stats);
       return true;
     } catch (e) {
-      _error = e.toString();
-      notifyListeners();
+      state = state.copyWith(error: e.toString());
       return false;
     }
   }

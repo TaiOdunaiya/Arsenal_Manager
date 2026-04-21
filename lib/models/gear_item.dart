@@ -7,6 +7,8 @@ class GearItem {
   final String divisionName;
   final int quantity;
   final String? notes;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   GearItem({
     required this.id,
@@ -15,6 +17,8 @@ class GearItem {
     required this.divisionName,
     required this.quantity,
     this.notes,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   StockStatus get status {
@@ -31,6 +35,8 @@ class GearItem {
       divisionName: json['divisionName'] as String,
       quantity: json['quantity'] as int,
       notes: json['notes'] as String?,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
     );
   }
 }
