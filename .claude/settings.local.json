@@ -8,7 +8,9 @@
       "Bash(cd /c/Users/t_dog/desktop/development/ArsenalApi && dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL --version 8.0.4 && dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0.4 && dotnet add package Swashbuckle.AspNetCore --version 6.6.2)",
       "Bash(cd /c/Users/t_dog/desktop/development/ArsenalApi && dotnet ef migrations add InitialCreate)",
       "Bash(cd \"C:/Users/t_dog/desktop/development/arsenal_manager\" && flutter pub get 2>&1)",
-      "Bash(cd \"C:/Users/t_dog/desktop/development/arsenal_manager\" && flutter analyze 2>&1)"
+      "Bash(cd \"C:/Users/t_dog/desktop/development/arsenal_manager\" && flutter analyze 2>&1)",
+      "Bash(flutter test *)",
+      "Bash(git commit * just dont add the co-Authored information)"
     ]
   }
 }

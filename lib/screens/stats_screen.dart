@@ -140,24 +140,28 @@ class StatsScreen extends ConsumerWidget {
             label: 'TOTAL GEAR ITEMS',
             value: '$total',
             color: AppTheme.wayneBlue,
+            icon: Icons.inventory_2,
           ),
           const SizedBox(height: 12),
           _SummaryRow(
             label: 'FULLY STOCKED',
             value: '${stats.inStockCount}',
             color: AppTheme.inStock,
+            icon: Icons.check_circle_outline,
           ),
           const SizedBox(height: 12),
           _SummaryRow(
             label: 'NEED RESUPPLY',
             value: '${stats.lowStockCount}',
             color: AppTheme.lowStock,
+            icon: Icons.warning_amber,
           ),
           const SizedBox(height: 12),
           _SummaryRow(
             label: 'CRITICAL ALERT',
             value: '${stats.criticalCount}',
             color: AppTheme.critical,
+            icon: Icons.warning_amber,
           ),
 
           const SizedBox(height: 32),
@@ -246,9 +250,13 @@ class _SummaryRow extends StatelessWidget {
   final String label;
   final String value;
   final Color color;
+  final IconData? icon;
 
   const _SummaryRow(
-      {required this.label, required this.value, required this.color});
+      {required this.label,
+      required this.value,
+      required this.color,
+      this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -258,17 +266,24 @@ class _SummaryRow extends StatelessWidget {
         border: Border.all(color: color.withOpacity(0.2)),
       ),
       child: CardTextureBackground(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              label,
-              style: GoogleFonts.orbitron(
-                  color: AppTheme.textSecondary,
-                  fontSize: 10,
-                  letterSpacing: 1.5),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.orbitron(
+                      color: AppTheme.textSecondary,
+                      fontSize: 10,
+                      letterSpacing: 1.5),
+                ),
+                if (icon != null) Icon(icon, color: color, size: 20),
+              ],
             ),
+            const SizedBox(height: 8),
             Text(
               value,
               style: GoogleFonts.orbitron(

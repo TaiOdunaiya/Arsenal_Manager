@@ -182,4 +182,26 @@ class ArsenalNotifier extends Notifier<ArsenalState> {
       return false;
     }
   }
+
+  Future<bool> batchRestockCritical(Map<int, int> restockQuantities) async {
+    try {
+      await Future.wait(
+        restockQuantities.entries.map((e) {
+          final item = state.gear.firstWhere((g) => g.id == e.key);
+          return _api.updateGear(
+            id: item.id,
+            name: item.name,
+            divisionId: item.divisionId,
+            quantity: e.value,
+            notes: item.notes,
+          );
+        }),
+      );
+      await _refreshGear();
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return false;
+    }
+  }
 }

@@ -233,4 +233,49 @@ void main() {
       expect(names, sorted);
     });
   });
+
+  group('batchRestockCritical', () {
+    test('updates all specified items and refreshes stats', () async {
+      final fake = FakeApiService();
+      final container = await makeContainer(fake);
+      addTearDown(container.dispose);
+
+      // Grapple Hook (id:2, qty:5) and Batmobile (id:3, qty:1) are critical
+      final success = await container
+          .read(arsenalProvider.notifier)
+          .batchRestockCritical({2: 25, 3: 10});
+
+      expect(success, true);
+      final gear = container.read(arsenalProvider).gear;
+      expect(gear.firstWhere((g) => g.id == 2).quantity, 25);
+      expect(gear.firstWhere((g) => g.id == 3).quantity, 10);
+    });
+
+    test('stats are recalculated after restock', () async {
+      final fake = FakeApiService();
+      final container = await makeContainer(fake);
+      addTearDown(container.dispose);
+
+      await container
+          .read(arsenalProvider.notifier)
+          .batchRestockCritical({2: 25, 3: 20});
+
+      expect(container.read(arsenalProvider).stats.criticalCount, 0);
+      expect(container.read(arsenalProvider).stats.inStockCount, 3);
+    });
+
+    test('returns false and sets error when API throws', () async {
+      final fake = FakeApiService();
+      final container = await makeContainer(fake);
+      addTearDown(container.dispose);
+
+      fake.shouldThrow = true;
+      final success = await container
+          .read(arsenalProvider.notifier)
+          .batchRestockCritical({2: 25});
+
+      expect(success, false);
+      expect(container.read(arsenalProvider).error, isNotNull);
+    });
+  });
 }
