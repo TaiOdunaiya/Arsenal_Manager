@@ -16,6 +16,7 @@ class _AddGearScreenState extends ConsumerState<AddGearScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _quantityController = TextEditingController();
+  final _targetQuantityController = TextEditingController();
   final _notesController = TextEditingController();
   int? _selectedDivisionId;
   bool _submitting = false;
@@ -24,6 +25,7 @@ class _AddGearScreenState extends ConsumerState<AddGearScreen> {
   void dispose() {
     _nameController.dispose();
     _quantityController.dispose();
+    _targetQuantityController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -35,6 +37,7 @@ class _AddGearScreenState extends ConsumerState<AddGearScreen> {
           name: _nameController.text.trim(),
           divisionId: _selectedDivisionId!,
           quantity: int.parse(_quantityController.text.trim()),
+          targetQuantity: int.parse(_targetQuantityController.text.trim()),
           notes: _notesController.text.trim().isEmpty
               ? null
               : _notesController.text.trim(),
@@ -83,6 +86,24 @@ class _AddGearScreenState extends ConsumerState<AddGearScreen> {
                 validator: (v) {
                   if (v == null || v.isEmpty) return 'Required';
                   if (int.tryParse(v) == null) return 'Must be a number';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _targetQuantityController,
+                style: const TextStyle(color: AppTheme.textPrimary),
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Target Quantity',
+                  helperText: 'How many do you need fully stocked?',
+                  helperStyle: TextStyle(color: AppTheme.textSecondary),
+                ),
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Required';
+                  final n = int.tryParse(v);
+                  if (n == null) return 'Must be a number';
+                  if (n < 1) return 'Must be at least 1';
                   return null;
                 },
               ),

@@ -6,7 +6,7 @@ import 'package:arsenal_manager/providers/arsenal_provider.dart';
 import 'fakes/fake_api_service.dart';
 
 void main() {
-  testWidgets('App renders bottom nav bar with three tabs', (tester) async {
+  testWidgets('App renders bottom nav bar with four tabs', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -19,5 +19,6 @@ void main() {
     expect(find.text('Dashboard'), findsOneWidget);
     expect(find.text('Arsenal'), findsOneWidget);
     expect(find.text('Stats'), findsOneWidget);
+    expect(find.text('Log'), findsOneWidget);
   });
 }

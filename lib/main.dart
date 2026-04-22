@@ -4,6 +4,7 @@ import 'theme/app_theme.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/arsenal_screen.dart';
 import 'screens/stats_screen.dart';
+import 'screens/activity_log_screen.dart';
 
 void main() {
   runApp(
@@ -41,6 +42,7 @@ class _MainShellState extends State<MainShell> {
     DashboardScreen(),
     ArsenalScreen(),
     StatsScreen(),
+    ActivityLogScreen(),
   ];
 
   @override
@@ -68,6 +70,11 @@ class _MainShellState extends State<MainShell> {
             icon: Icon(Icons.bar_chart_outlined),
             activeIcon: Icon(Icons.bar_chart),
             label: 'Stats',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history_outlined),
+            activeIcon: Icon(Icons.history),
+            label: 'Log',
           ),
         ],
       ),

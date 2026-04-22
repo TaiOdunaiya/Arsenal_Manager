@@ -18,6 +18,7 @@ class _EditGearScreenState extends ConsumerState<EditGearScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _quantityController;
+  late final TextEditingController _targetQuantityController;
   late final TextEditingController _notesController;
   late int? _selectedDivisionId;
   bool _submitting = false;
@@ -28,6 +29,8 @@ class _EditGearScreenState extends ConsumerState<EditGearScreen> {
     _nameController = TextEditingController(text: widget.item.name);
     _quantityController =
         TextEditingController(text: '${widget.item.quantity}');
+    _targetQuantityController =
+        TextEditingController(text: '${widget.item.targetQuantity}');
     _notesController =
         TextEditingController(text: widget.item.notes ?? '');
     _selectedDivisionId = widget.item.divisionId;
@@ -37,6 +40,7 @@ class _EditGearScreenState extends ConsumerState<EditGearScreen> {
   void dispose() {
     _nameController.dispose();
     _quantityController.dispose();
+    _targetQuantityController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -49,6 +53,7 @@ class _EditGearScreenState extends ConsumerState<EditGearScreen> {
           name: _nameController.text.trim(),
           divisionId: _selectedDivisionId!,
           quantity: int.parse(_quantityController.text.trim()),
+          targetQuantity: int.parse(_targetQuantityController.text.trim()),
           notes: _notesController.text.trim().isEmpty
               ? null
               : _notesController.text.trim(),
@@ -93,16 +98,7 @@ class _EditGearScreenState extends ConsumerState<EditGearScreen> {
     final divisions = ref.watch(arsenalProvider).divisions;
 
     return Scaffold(
-      appBar: BatAppBar(
-        title: 'EDIT GEAR',
-        actions: [
-          IconButton(
-            icon:
-                const Icon(Icons.delete_outline, color: AppTheme.critical),
-            onPressed: _submitting ? null : _delete,
-          ),
-        ],
-      ),
+      appBar: const BatAppBar(title: 'EDIT GEAR'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Form(
@@ -137,6 +133,24 @@ class _EditGearScreenState extends ConsumerState<EditGearScreen> {
                 validator: (v) {
                   if (v == null || v.isEmpty) return 'Required';
                   if (int.tryParse(v) == null) return 'Must be a number';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _targetQuantityController,
+                style: const TextStyle(color: AppTheme.textPrimary),
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Target Quantity',
+                  helperText: 'How many do you need fully stocked?',
+                  helperStyle: TextStyle(color: AppTheme.textSecondary),
+                ),
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Required';
+                  final n = int.tryParse(v);
+                  if (n == null) return 'Must be a number';
+                  if (n < 1) return 'Must be at least 1';
                   return null;
                 },
               ),
@@ -193,6 +207,25 @@ class _EditGearScreenState extends ConsumerState<EditGearScreen> {
                 ),
                 child: Text(
                   'CANCEL',
+                  style: GoogleFonts.orbitron(
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: _submitting ? null : _delete,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.critical,
+                  side: const BorderSide(color: AppTheme.critical),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                ),
+                child: Text(
+                  'DELETE',
                   style: GoogleFonts.orbitron(
                     fontWeight: FontWeight.bold,
                     letterSpacing: 2,

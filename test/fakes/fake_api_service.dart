@@ -16,9 +16,9 @@ class FakeApiService implements ApiServiceBase {
 
   FakeApiService({this.shouldThrow = false})
       : _gear = [
-          _g(id: 1, name: 'Batarang', divisionId: 1, divisionName: 'Gadgets', quantity: 20),
-          _g(id: 2, name: 'Grapple Hook', divisionId: 1, divisionName: 'Gadgets', quantity: 5),
-          _g(id: 3, name: 'Batmobile', divisionId: 2, divisionName: 'Vehicles', quantity: 1),
+          _g(id: 1, name: 'Batarang', divisionId: 1, divisionName: 'Gadgets', quantity: 20, targetQuantity: 30),
+          _g(id: 2, name: 'Grapple Hook', divisionId: 1, divisionName: 'Gadgets', quantity: 5, targetQuantity: 10),
+          _g(id: 3, name: 'Batmobile', divisionId: 2, divisionName: 'Vehicles', quantity: 1, targetQuantity: 3),
         ],
         _divisions = [
           Division(id: 1, name: 'Gadgets'),
@@ -31,6 +31,7 @@ class FakeApiService implements ApiServiceBase {
     required int divisionId,
     required String divisionName,
     required int quantity,
+    required int targetQuantity,
     String? notes,
   }) =>
       GearItem(
@@ -39,6 +40,7 @@ class FakeApiService implements ApiServiceBase {
         divisionId: divisionId,
         divisionName: divisionName,
         quantity: quantity,
+        targetQuantity: targetQuantity,
         notes: notes,
         createdAt: DateTime(2024),
         updatedAt: DateTime(2024),
@@ -77,15 +79,11 @@ class FakeApiService implements ApiServiceBase {
   @override
   Future<DashboardStats> fetchStats() async {
     _maybeThrow();
-    final critical = _gear.where((g) => g.quantity <= 5).length;
-    final lowStock =
-        _gear.where((g) => g.quantity > 5 && g.quantity <= 15).length;
-    final inStock = _gear.where((g) => g.quantity > 15).length;
     return DashboardStats(
       totalGear: _gear.length,
-      criticalCount: critical,
-      lowStockCount: lowStock,
-      inStockCount: inStock,
+      criticalCount: _gear.where((g) => g.status == StockStatus.critical).length,
+      lowStockCount: _gear.where((g) => g.status == StockStatus.lowStock).length,
+      inStockCount: _gear.where((g) => g.status == StockStatus.inStock).length,
     );
   }
 
@@ -94,6 +92,7 @@ class FakeApiService implements ApiServiceBase {
     required String name,
     required int divisionId,
     required int quantity,
+    required int targetQuantity,
     String? notes,
   }) async {
     _maybeThrow();
@@ -105,6 +104,7 @@ class FakeApiService implements ApiServiceBase {
       divisionId: divisionId,
       divisionName: divisionName,
       quantity: quantity,
+      targetQuantity: targetQuantity,
       notes: notes,
     );
     _gear.add(newItem);
@@ -117,6 +117,7 @@ class FakeApiService implements ApiServiceBase {
     required String name,
     required int divisionId,
     required int quantity,
+    required int targetQuantity,
     String? notes,
   }) async {
     _maybeThrow();
@@ -130,6 +131,7 @@ class FakeApiService implements ApiServiceBase {
       divisionId: divisionId,
       divisionName: divisionName,
       quantity: quantity,
+      targetQuantity: targetQuantity,
       notes: notes,
     );
   }

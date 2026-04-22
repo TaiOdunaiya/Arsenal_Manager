@@ -7,54 +7,91 @@ import '../services/api_service.dart';
 // ─── Sentinel for nullable copyWith fields ────────────────────────────────────
 const Object _keep = Object();
 
+// ─── Activity log types ───────────────────────────────────────────────────────
+
+enum ActivityAction { added, updated, deleted }
+
+class ActivityEntry {
+  final GearItem item;
+  final ActivityAction action;
+  final DateTime timestamp;
+
+  const ActivityEntry({
+    required this.item,
+    required this.action,
+    required this.timestamp,
+  });
+}
+
 // ─── State ────────────────────────────────────────────────────────────────────
 
 class ArsenalState {
   final List<GearItem> gear;
   final List<Division> divisions;
-  final DashboardStats stats;
   final bool loading;
   final String? error;
   final String searchQuery;
   final int? selectedDivisionId;
+  final List<ActivityEntry> deletedItems;
 
   const ArsenalState({
     required this.gear,
     required this.divisions,
-    required this.stats,
     required this.loading,
     this.error,
     this.searchQuery = '',
     this.selectedDivisionId,
+    this.deletedItems = const [],
   });
 
-  factory ArsenalState.initial() => ArsenalState(
-        gear: const [],
-        divisions: const [],
-        stats: DashboardStats.empty(),
+  factory ArsenalState.initial() => const ArsenalState(
+        gear: [],
+        divisions: [],
         loading: false,
+      );
+
+  DashboardStats get stats => DashboardStats(
+        totalGear: gear.length,
+        criticalCount:
+            gear.where((g) => g.status == StockStatus.critical).length,
+        lowStockCount:
+            gear.where((g) => g.status == StockStatus.lowStock).length,
+        inStockCount:
+            gear.where((g) => g.status == StockStatus.inStock).length,
       );
 
   ArsenalState copyWith({
     List<GearItem>? gear,
     List<Division>? divisions,
-    DashboardStats? stats,
     bool? loading,
     Object? error = _keep,
     String? searchQuery,
     Object? selectedDivisionId = _keep,
+    List<ActivityEntry>? deletedItems,
   }) {
     return ArsenalState(
       gear: gear ?? this.gear,
       divisions: divisions ?? this.divisions,
-      stats: stats ?? this.stats,
       loading: loading ?? this.loading,
       error: identical(error, _keep) ? this.error : error as String?,
       searchQuery: searchQuery ?? this.searchQuery,
       selectedDivisionId: identical(selectedDivisionId, _keep)
           ? this.selectedDivisionId
           : selectedDivisionId as int?,
+      deletedItems: deletedItems ?? this.deletedItems,
     );
+  }
+
+  List<ActivityEntry> get recentActivity {
+    final entries = [
+      ...gear.map((item) => ActivityEntry(
+            item: item,
+            action: item.wasJustAdded ? ActivityAction.added : ActivityAction.updated,
+            timestamp: item.updatedAt,
+          )),
+      ...deletedItems,
+    ]..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    return entries;
   }
 
   List<GearItem> get filteredGear {
@@ -105,12 +142,10 @@ class ArsenalNotifier extends Notifier<ArsenalState> {
       final results = await Future.wait([
         _api.fetchGear(),
         _api.fetchDivisions(),
-        _api.fetchStats(),
       ]);
       state = state.copyWith(
         gear: results[0] as List<GearItem>,
         divisions: results[1] as List<Division>,
-        stats: results[2] as DashboardStats,
         loading: false,
       );
     } catch (e) {
@@ -120,14 +155,14 @@ class ArsenalNotifier extends Notifier<ArsenalState> {
 
   Future<void> _refreshGear() async {
     final gear = await _api.fetchGear();
-    final stats = await _api.fetchStats();
-    state = state.copyWith(gear: gear, stats: stats);
+    state = state.copyWith(gear: gear);
   }
 
   Future<bool> addGear({
     required String name,
     required int divisionId,
     required int quantity,
+    required int targetQuantity,
     String? notes,
   }) async {
     try {
@@ -135,11 +170,10 @@ class ArsenalNotifier extends Notifier<ArsenalState> {
         name: name,
         divisionId: divisionId,
         quantity: quantity,
+        targetQuantity: targetQuantity,
         notes: notes,
       );
-      final updatedGear = [...state.gear, newItem];
-      final stats = await _api.fetchStats();
-      state = state.copyWith(gear: updatedGear, stats: stats);
+      state = state.copyWith(gear: [...state.gear, newItem]);
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -152,6 +186,7 @@ class ArsenalNotifier extends Notifier<ArsenalState> {
     required String name,
     required int divisionId,
     required int quantity,
+    required int targetQuantity,
     String? notes,
   }) async {
     try {
@@ -160,6 +195,7 @@ class ArsenalNotifier extends Notifier<ArsenalState> {
         name: name,
         divisionId: divisionId,
         quantity: quantity,
+        targetQuantity: targetQuantity,
         notes: notes,
       );
       await _refreshGear();
@@ -172,10 +208,19 @@ class ArsenalNotifier extends Notifier<ArsenalState> {
 
   Future<bool> deleteGear(int id) async {
     try {
+      final item = state.gear.firstWhere((g) => g.id == id);
       await _api.deleteGear(id);
-      final updatedGear = state.gear.where((g) => g.id != id).toList();
-      final stats = await _api.fetchStats();
-      state = state.copyWith(gear: updatedGear, stats: stats);
+      state = state.copyWith(
+        gear: state.gear.where((g) => g.id != id).toList(),
+        deletedItems: [
+          ...state.deletedItems,
+          ActivityEntry(
+            item: item,
+            action: ActivityAction.deleted,
+            timestamp: DateTime.now(),
+          ),
+        ],
+      );
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -193,6 +238,7 @@ class ArsenalNotifier extends Notifier<ArsenalState> {
             name: item.name,
             divisionId: item.divisionId,
             quantity: e.value,
+            targetQuantity: item.targetQuantity,
             notes: item.notes,
           );
         }),

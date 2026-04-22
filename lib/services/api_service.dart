@@ -13,6 +13,7 @@ abstract class ApiServiceBase {
     required String name,
     required int divisionId,
     required int quantity,
+    required int targetQuantity,
     String? notes,
   });
   Future<void> updateGear({
@@ -20,6 +21,7 @@ abstract class ApiServiceBase {
     required String name,
     required int divisionId,
     required int quantity,
+    required int targetQuantity,
     String? notes,
   });
   Future<void> deleteGear(int id);
@@ -73,6 +75,7 @@ class ApiService implements ApiServiceBase {
     required String name,
     required int divisionId,
     required int quantity,
+    required int targetQuantity,
     String? notes,
   }) async {
     final response = await http.post(
@@ -82,6 +85,7 @@ class ApiService implements ApiServiceBase {
         'name': name,
         'divisionId': divisionId,
         'quantity': quantity,
+        'targetQuantity': targetQuantity,
         'notes': notes,
       }),
     );
@@ -97,6 +101,7 @@ class ApiService implements ApiServiceBase {
     required String name,
     required int divisionId,
     required int quantity,
+    required int targetQuantity,
     String? notes,
   }) async {
     final response = await http.put(
@@ -106,6 +111,7 @@ class ApiService implements ApiServiceBase {
         'name': name,
         'divisionId': divisionId,
         'quantity': quantity,
+        'targetQuantity': targetQuantity,
         'notes': notes,
       }),
     );
