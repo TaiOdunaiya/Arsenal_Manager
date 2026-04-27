@@ -56,7 +56,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
-  flutter_native_splash:
+  flutter_native_splash: ^2.4.7
+  flutter_launcher_icons: ^0.14.3
 
 flutter_native_splash:
   color: "#111317"
@@ -67,6 +68,22 @@ flutter_native_splash:
   android_12:
     color: "#111317"
     image: web/Wayne_splash.png
+
+flutter_launcher_icons:
+  image_path: web/Wayne_splash.png
+  android: true
+  ios: true
+  web:
+    generate: true
+    image_path: web/Wayne_splash.png
+    background_color: "#111317"
+    theme_color: "#111317"
+  # Matches splash so the foreground sits on the same color on the home screen
+  adaptive_icon_background: "#111317"
+  adaptive_icon_foreground: web/Wayne_splash.png
+  # Default is 16. Lower = less system padding = larger logo in the circle (see Android adaptive icon safe zone)
+  adaptive_icon_foreground_inset: 8
+  remove_alpha_ios: true
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
