@@ -31,7 +31,9 @@ class _RestockCriticalSheetState extends ConsumerState<RestockCriticalSheet> {
 
   @override
   void dispose() {
-    for (final c in _controllers.values) c.dispose();
+    for (final c in _controllers.values) {
+      c.dispose();
+    }
     super.dispose();
   }
 

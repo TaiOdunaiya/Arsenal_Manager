@@ -40,10 +40,11 @@ Batman/Wayne Enterprises-themed mobile inventory management app. Built with Flut
 | Dependency | Version | Purpose |
 |---|---|---|
 | `http` | ^1.1.0 | HTTP calls to C# API |
-| `provider` | ^6.1.1 | State management |
-| `google_fonts` | ^6.1.0 | Orbitron + Roboto fonts |
-| `fl_chart` | ^0.65.0 | Donut/pie chart on Stats screen |
+| `flutter_riverpod` | ^2.5.1 | State management |
+| `google_fonts` | ^6.3.0 | Orbitron + Roboto fonts |
+| `fl_chart` | ^1.0.0 | Donut/pie chart on Stats screen |
 | `percent_indicator` | ^4.2.3 | Progress indicators |
+| `path_provider` | ^2.1.5 | Local file-system path access |
 
 ---
 

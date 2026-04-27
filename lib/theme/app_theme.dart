@@ -22,7 +22,6 @@ class AppTheme {
         primary: wayneBlue,
         secondary: secondaryBlue,
         surface: cardSurface,
-        background: background,
       ),
       textTheme: GoogleFonts.robotoTextTheme(ThemeData.dark().textTheme),
       appBarTheme: AppBarTheme(
@@ -70,7 +69,7 @@ class AppTheme {
       ),
       dropdownMenuTheme: DropdownMenuThemeData(
         menuStyle: MenuStyle(
-          backgroundColor: MaterialStateProperty.all(cardElevated),
+          backgroundColor: WidgetStateProperty.all(cardElevated),
         ),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(

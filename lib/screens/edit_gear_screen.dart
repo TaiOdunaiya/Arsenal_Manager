@@ -114,7 +114,7 @@ class _EditGearScreenState extends ConsumerState<EditGearScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
-                value: _selectedDivisionId,
+                initialValue: _selectedDivisionId,
                 dropdownColor: AppTheme.cardElevated,
                 style: const TextStyle(color: AppTheme.textPrimary),
                 decoration: const InputDecoration(labelText: 'Division'),

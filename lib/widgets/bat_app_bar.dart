@@ -26,13 +26,13 @@ class BatAppBar extends StatelessWidget implements PreferredSizeWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Positioned(
+            const Positioned(
               left: 4,
               top: 0,
               bottom: 0,
               child: Center(child: _WayneBatLogo()),
             ),
-            Positioned(
+            const Positioned(
               right: 4,
               top: 0,
               bottom: 0,
